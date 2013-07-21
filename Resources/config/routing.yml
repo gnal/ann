@@ -1,0 +1,3 @@
+abc_ann_homepage:
+    pattern:  /
+    defaults: { _controller: AbcAnnBundle:Default:index }
