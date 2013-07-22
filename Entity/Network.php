@@ -4,6 +4,8 @@ namespace Abc\AnnBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
 use Abc\AnnBundle\Entity\Layer;
 
@@ -88,11 +90,11 @@ class Network
     public function learn(array $targets)
     {
         $l = $this->layers->count() - 1;
-        $errors = array();
+        $errors = [];
         $j = 0;
 
         for ($i=$l; $i >= 0; $i--) {
-            $errors[$i] = array();
+            $errors[$i] = [];
             foreach ($this->layers[$i]->getNeurons() as $n => $neuron) {
                 if ($i === $l) {
                     $delta = $neuron->calcDelta($targets[$j] - $neuron->getOutput());
@@ -119,10 +121,62 @@ class Network
         $this->age++;
     }
 
-    public function train(array $trainingSet)
+    protected function mse($targets)
     {
-        $this->run($trainingSet['inputs']);
-        $this->learn($trainingSet['targets']);
+        $total = 0;
+        $i = 0;
+        foreach ($targets as $target) {
+            $error = $target - $this->getOutputs()[$i];
+            $error = pow($error, 2);
+            $total += $error;
+        }
+        return $total / count($targets);
+    }
+
+    public function train(array $data, array $options = [], $logger)
+    {
+        $resolver = new OptionsResolver();
+        $this->setDefaultOptions($resolver);
+        $options = $resolver->resolve($options);
+
+        $start = microtime(true);
+        $error = 1;
+
+        for ($i=0; $i < $options['iterations'] && $error > $options['error_thresh']; $i++) {
+            foreach ($data as $value) {
+                $this->run($value['input']);
+                $this->learn($value['output']);
+                // output stuff
+                $logger->writeln('training... epochs: '.$this->getAge());
+
+                foreach ($this->getOutputs() as $k => $v) {
+                    $poop[$k] = intval(round($v));
+                }
+
+                $logger->writeln('<info>input: '.implode(' ', $value['input']).'</info>');
+                if ($poop === $value['output']) {
+                    $logger->writeln('<question>output: '.implode(' ', $poop).'</question>');
+                } else {
+                    $logger->writeln('<error>output: '.implode(' ', $poop).'</error>');
+                }
+
+                $error = $this->mse($value['output']);
+                $logger->writeln('error: '.$error);
+                $logger->writeln('===');
+                // end output stuff
+            }
+        }
+
+        $end = microtime(true) - $start;
+        $logger->writeln('exec time: '.round($end).' sec');
+    }
+
+    protected function setDefaultOptions(OptionsResolverInterface $resolver)
+    {
+        $resolver->setDefaults([
+            'iterations' => 20000,
+            'error_thresh' => 0.005,
+        ]);
     }
 
     public function getId()

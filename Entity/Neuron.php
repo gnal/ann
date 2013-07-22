@@ -40,7 +40,7 @@ class Neuron
     public function __construct($nbSynapses)
     {
         $this->synapses = new ArrayCollection();
-        $this->bias = mt_rand(333, 999) / 1000;
+        $this->bias = mt_rand(222, 888) / 1000;
 
         for ($i = 0; $i < $nbSynapses; $i++) {
             $synapse = new Synapse();
