@@ -21,54 +21,35 @@ class TrainCommand extends ContainerAwareCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $numbers[1] = [
-            0,0,1,0,0,
-            0,0,1,0,0,
-            0,0,1,0,0,
-            0,0,1,0,0,
-            0,0,1,0,0,
-        ];
-        $numbers[2] = [
-            1,1,1,1,1,
-            0,0,0,1,0,
-            0,0,1,0,0,
-            0,1,0,0,0,
-            1,1,1,1,1,
-        ];
-        $numbers[3] = [
-            1,1,1,1,1,
-            0,0,0,0,1,
-            0,1,1,1,1,
-            0,0,0,0,1,
-            1,1,1,1,1,
-        ];
-        $numbers[4] = [
-            1,0,0,1,0,
-            1,0,0,1,0,
-            1,1,1,1,0,
-            0,0,0,1,0,
-            0,0,0,1,0,
-        ];
-        $numbers[5] = [
-            1,1,1,1,1,
-            0,1,0,0,0,
-            0,0,1,0,0,
-            0,0,0,1,0,
-            1,1,1,1,1,
-        ];
-
+        /*
+            0: coffee
+            1: donuts
+            2: hamburger
+        */
         $data = [
-            ['input' => [0, 1], 'output' => [1]],
-            ['input' => [0, 0], 'output' => [0]],
-            ['input' => [1, 1], 'output' => [0]],
-            ['input' => [1, 0], 'output' => [1]],
+            [
+                'input' => $this->getImageGreyscaleFlattenedValues('http://icons.iconarchive.com/icons/pixelkit/tasty-bites/16/coffee-icon.png'),
+                'output' => [1,0,0]
+            ],
+            [
+                'input' => $this->getImageGreyscaleFlattenedValues('http://icons.iconarchive.com/icons/pixelkit/tasty-bites/16/donuts-icon.png'),
+                'output' => [0,1,0]
+            ],
+            [
+                'input' => $this->getImageGreyscaleFlattenedValues('http://icons.iconarchive.com/icons/pixelkit/tasty-bites/16/hamburger-icon.png'),
+                'output' => [0,0,1]
+            ],
         ];
 
-        $network = new Network([2, 4, 1]);
+        $network = new Network([256, 16, 3]);
         $network->setName('MLP');
-        $network->setLearningRate(0.3);
+        $network->setLearningRate(0.5);
 
-        $network->train($data, [], $output);
+        // $network = $this->getContainer()->get('doctrine')
+        //     ->getRepository('AbcAnnBundle:Network')
+        //     ->find(4);
+
+        $network->train($data, ['iterations' => 100000], $output);
 
         $em = $this->getContainer()->get('doctrine')->getEntityManager();
         $em->persist($network);

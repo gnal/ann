@@ -140,9 +140,10 @@ class Network
         $options = $resolver->resolve($options);
 
         $start = microtime(true);
-        $error = 1;
+        $l = 0;
+        $results = [];
 
-        for ($i=0; $i < $options['iterations'] && $error > $options['error_thresh']; $i++) {
+        for ($i=0; $i < $options['iterations']/count($data); $i++) {
             foreach ($data as $value) {
                 $this->run($value['input']);
                 $this->learn($value['output']);
@@ -155,14 +156,21 @@ class Network
 
                 $logger->writeln('<info>input: '.implode(' ', $value['input']).'</info>');
                 if ($poop === $value['output']) {
+                    $results[$l] = 1;
                     $logger->writeln('<question>output: '.implode(' ', $poop).'</question>');
                 } else {
+                    $results[$l] = 0;
                     $logger->writeln('<error>output: '.implode(' ', $poop).'</error>');
                 }
 
-                $error = $this->mse($value['output']);
-                $logger->writeln('error: '.$error);
+                if (count($results) === 1000) {
+                    $count = array_count_values($results);
+                    $wins = isset($count[1]) ? $count[1] : 0;
+                    $winRate = $wins/1000*100;
+                    $logger->writeln('last 1000 win: '.$winRate.'%');
+                }
                 $logger->writeln('===');
+                $l >= 999 ? $l = 0 : $l++;
                 // end output stuff
             }
         }
@@ -174,7 +182,7 @@ class Network
     protected function setDefaultOptions(OptionsResolverInterface $resolver)
     {
         $resolver->setDefaults([
-            'iterations' => 20000,
+            'iterations' => 10000,
             'error_thresh' => 0.005,
         ]);
     }

@@ -21,21 +21,20 @@ class RunCommand extends ContainerAwareCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $images[] = [0,0,0,1,1,1,0,0,0]; // -
-        $images[] = [0,1,0,1,1,1,0,1,0]; // +
-        $images[] = [0,0,1,0,1,0,1,0,0]; // /
-        $images[] = [1,0,1,0,1,0,1,0,1]; // x
-
         $network = $this->getContainer()->get('doctrine')
             ->getRepository('AbcAnnBundle:Network')
-            ->find(2);
+            ->find(3);
 
         $wins = 0;
         $start = microtime(true);
 
         for ($i=0; $i < 1; $i++) {
             // $rand = mt_rand(0, count($images) - 1);
-            $food = [1,1,1,0,0,1,1,1,1];
+            $food = [
+                0,0,0,
+                0,1,0,
+                0,1,0,
+            ];
 
             // if ($food === $images[0]) {
             //     $answer = [1,0,0,0];
